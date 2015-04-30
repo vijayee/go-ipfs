@@ -6,6 +6,7 @@ import (
 	"time"
 
 	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	dialer "github.com/ipfs/go-ipfs/p2p/net/dial"
 	peer "github.com/ipfs/go-ipfs/p2p/peer"
 	u "github.com/ipfs/go-ipfs/util"
 
@@ -55,7 +56,7 @@ type Conn interface {
 type Dialer struct {
 
 	// Dialer is an optional manet.Dialer to use.
-	Dialer manet.Dialer
+	Dialer dialer.Dialer
 
 	// LocalPeer is the identity of the local Peer.
 	LocalPeer peer.ID
