@@ -9,7 +9,6 @@ import (
 
 	mconn "github.com/ipfs/go-ipfs/metrics/conn"
 	conn "github.com/ipfs/go-ipfs/p2p/net/conn"
-	dialer "github.com/ipfs/go-ipfs/p2p/net/dial"
 	addrutil "github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
 	peer "github.com/ipfs/go-ipfs/p2p/peer"
 	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
@@ -237,7 +236,7 @@ func (s *Swarm) gatedDialAttempt(ctx context.Context, p peer.ID) (*Conn, error) 
 			log.Event(ctx, "swarmDialBackoffAdd", logdial)
 			s.backf.AddBackoff(p) // let others know to backoff
 
-			return nil, ErrDialFailed // ok, we failed. try again. (if loop is done, our error is output)
+			return nil, fmt.Errorf("dial failed: %s", err)
 		}
 		log.Event(ctx, "swarmDialBackoffClear", logdial)
 		s.backf.Clear(p) // okay, no longer need to backoff
@@ -282,7 +281,8 @@ func (s *Swarm) dial(ctx context.Context, p peer.ID) (*Conn, error) {
 	logdial["encrypted"] = (sk != nil) // log wether this will be an encrypted dial or not.
 	if sk == nil {
 		// fine for sk to be nil, just log.
-		log.Debug("Dial not given PrivateKey, so WILL NOT SECURE conn.")
+		// log as warning because we don't quite support this yet.
+		log.Warning("Dial not given PrivateKey, so WILL NOT SECURE conn.")
 	}
 
 	// get our own addrs. try dialing out from our listener addresses (reusing ports)
@@ -297,9 +297,11 @@ func (s *Swarm) dial(ctx context.Context, p peer.ID) (*Conn, error) {
 	remoteAddrs := s.peers.Addrs(p)
 	// make sure we can use the addresses.
 	remoteAddrs = addrutil.FilterUsableAddrs(remoteAddrs)
+
 	// drop out any addrs that would just dial ourselves. use ListenAddresses
 	// as that is a more authoritative view than localAddrs.
 	ila, _ := s.InterfaceListenAddresses()
+
 	remoteAddrs = addrutil.Subtract(remoteAddrs, ila)
 	remoteAddrs = addrutil.Subtract(remoteAddrs, s.peers.Addrs(s.local))
 	log.Debugf("%s swarm dialing %s -- local:%s remote:%s", s.local, p, s.ListenAddresses(), remoteAddrs)
@@ -311,7 +313,7 @@ func (s *Swarm) dial(ctx context.Context, p peer.ID) (*Conn, error) {
 
 	// open connection to peer
 	d := &conn.Dialer{
-		Dialer:     dialer.DialerWithTimeout(s.dialT),
+		Dialer:     s.dialer,
 		LocalPeer:  s.local,
 		LocalAddrs: localAddrs,
 		PrivateKey: sk,
@@ -412,7 +414,7 @@ func (s *Swarm) dialAddrs(ctx context.Context, d *conn.Dialer, p peer.ID, remote
 	for i := 0; i < len(remoteAddrs); i++ {
 		select {
 		case exitErr = <-errs: //
-			log.Debug(exitErr)
+			log.Warning(exitErr)
 		case connC := <-conns:
 			// take the first + return asap
 			close(foundConn)

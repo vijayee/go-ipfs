@@ -95,9 +95,10 @@ func (l *listener) Accept() (net.Conn, error) {
 		}
 
 		if l.privk == nil {
-			log.Warning("listener %s listening INSECURELY!", l)
+			log.Warningf("listener %s listening INSECURELY!", l)
 			return c, nil
 		}
+
 		sc, err := newSecureConn(ctx, l.privk, c)
 		if err != nil {
 			log.Infof("ignoring conn we failed to secure: %s %s", err, c)
@@ -142,6 +143,22 @@ func Listen(ctx context.Context, addr ma.Multiaddr, local peer.ID, sk ic.PrivKey
 
 	l := &listener{
 		Listener: ml,
+		local:    local,
+		privk:    sk,
+		cg:       ctxgroup.WithContext(ctx),
+	}
+	l.cg.SetTeardown(l.teardown)
+
+	log.Debugf("Conn Listener on %s", l.Multiaddr())
+	log.Event(ctx, "swarmListen", l)
+	return l, nil
+}
+
+// ListenWrap wraps the given manet.Listener
+func ListenWrap(ctx context.Context, list manet.Listener, local peer.ID, sk ic.PrivKey) (Listener, error) {
+
+	l := &listener{
+		Listener: list,
 		local:    local,
 		privk:    sk,
 		cg:       ctxgroup.WithContext(ctx),
