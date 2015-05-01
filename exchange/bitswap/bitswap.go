@@ -225,7 +225,7 @@ func (bs *Bitswap) HasBlock(ctx context.Context, blk *blocks.Block) error {
 	}
 
 	if has {
-		log.Error(bs.self, "Dup Block! ", blk.Key())
+		log.Warning(bs.self, "Dup Block! ", blk.Key())
 	}
 
 	if err := bs.blockstore.Put(blk); err != nil {

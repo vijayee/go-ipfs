@@ -3,14 +3,13 @@ package integrationtest
 import (
 	"bytes"
 	"io"
-	"math"
 	"testing"
 	"time"
 
 	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 	core "github.com/ipfs/go-ipfs/core"
 	coreunix "github.com/ipfs/go-ipfs/core/coreunix"
-	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
+	mn2 "github.com/ipfs/go-ipfs/p2p/net/mock2"
 	"github.com/ipfs/go-ipfs/p2p/peer"
 	"github.com/ipfs/go-ipfs/thirdparty/unit"
 	errors "github.com/ipfs/go-ipfs/util/debugerror"
@@ -66,31 +65,31 @@ func RunThreeLeggedCat(data []byte, conf testutil.LatencyConfig) error {
 	const numPeers = 3
 
 	// create network
-	mn, err := mocknet.FullMeshLinked(ctx, numPeers)
+	ns, err := mn2.NewNetworkSimulator(numPeers)
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	mn.SetLinkDefaults(mocknet.LinkOptions{
-		Latency: conf.NetworkLatency,
-		// TODO add to conf. This is tricky because we want 0 values to be functional.
-		Bandwidth: math.MaxInt32,
-	})
+	defer ns.Close()
+	ns.ConOpts = mn2.ConnectionOpts{
+		Bandwidth: 500 * unit.MB,
+		Delay:     conf.NetworkLatency,
+	}
 
-	peers := mn.Peers()
+	peers := ns.Peers()
 	if len(peers) < numPeers {
 		return errors.New("test initialization error")
 	}
-	bootstrap, err := core.NewIPFSNode(ctx, MocknetTestRepo(peers[2], mn.Host(peers[2]), conf, core.DHTOption))
+	bootstrap, err := core.NewIPFSNode(ctx, MocknetTestRepo(peers[2], ns, conf, core.DHTOption))
 	if err != nil {
 		return err
 	}
 	defer bootstrap.Close()
-	adder, err := core.NewIPFSNode(ctx, MocknetTestRepo(peers[0], mn.Host(peers[0]), conf, core.DHTOption))
+	adder, err := core.NewIPFSNode(ctx, MocknetTestRepo(peers[0], ns, conf, core.DHTOption))
 	if err != nil {
 		return err
 	}
 	defer adder.Close()
-	catter, err := core.NewIPFSNode(ctx, MocknetTestRepo(peers[1], mn.Host(peers[1]), conf, core.DHTOption))
+	catter, err := core.NewIPFSNode(ctx, MocknetTestRepo(peers[1], ns, conf, core.DHTOption))
 	if err != nil {
 		return err
 	}

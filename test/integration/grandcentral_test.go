@@ -1,5 +1,6 @@
 package integrationtest
 
+/*
 import (
 	"bytes"
 	"fmt"
@@ -182,3 +183,4 @@ func RunSupernodePutRecordGetRecord(conf testutil.LatencyConfig) error {
 	}
 	return nil
 }
+*/
