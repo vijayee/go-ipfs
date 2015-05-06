@@ -1,11 +1,11 @@
 package cli
 
 import (
-	"strings"
-	"testing"
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
+	"testing"
 
 	"github.com/ipfs/go-ipfs/commands"
 )
@@ -204,7 +204,7 @@ func TestArgumentParsing(t *testing.T) {
 	testFail([]string{"reversedoptional", "value1", "value2", "value3"}, "provided too many args, only takes 1")
 
 	// Use a temp file to simulate stdin
-	fileToSimulateStdin := func(t *testing.T, content string) (*os.File) {
+	fileToSimulateStdin := func(t *testing.T, content string) *os.File {
 		fstdin, err := ioutil.TempFile("", "")
 		if err != nil {
 			t.Fatal(err)
