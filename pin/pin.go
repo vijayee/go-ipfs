@@ -33,20 +33,20 @@ type Pinner interface {
 	IsPinned(util.Key) bool
 	Pin(context.Context, *mdag.Node, bool) error
 	Unpin(context.Context, util.Key, bool) error
+
+	// PinWithMode is for manually editing the pin structure. Use with
+	// care! If used improperly, garbage collection may not be
+	// successful.
+	PinWithMode(util.Key, PinMode)
+	// RemovePinWithMode is for manually editing the pin structure.
+	// Use with care! If used improperly, garbage collection may not
+	// be successful.
+	RemovePinWithMode(util.Key, PinMode)
+
 	Flush() error
-	GetManual() ManualPinner
 	DirectKeys() []util.Key
 	IndirectKeys() map[util.Key]int
 	RecursiveKeys() []util.Key
-}
-
-// ManualPinner is for manually editing the pin structure
-// Use with care! If used improperly, garbage collection
-// may not be successful
-type ManualPinner interface {
-	PinWithMode(util.Key, PinMode)
-	RemovePinWithMode(util.Key, PinMode)
-	Pinner
 }
 
 // pinner implements the Pinner interface
@@ -308,8 +308,8 @@ func loadSet(d ds.Datastore, k ds.Key, val interface{}) error {
 	return json.Unmarshal(bf, val)
 }
 
-// PinWithMode is a method on ManualPinners, allowing the user to have fine
-// grained control over pin counts
+// PinWithMode allows the user to have fine grained control over pin
+// counts
 func (p *pinner) PinWithMode(k util.Key, mode PinMode) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -321,8 +321,4 @@ func (p *pinner) PinWithMode(k util.Key, mode PinMode) {
 	case Indirect:
 		p.indirPin.Increment(k)
 	}
-}
-
-func (p *pinner) GetManual() ManualPinner {
-	return p
 }

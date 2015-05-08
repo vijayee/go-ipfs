@@ -1,7 +1,6 @@
 package coreunix
 
 import (
-	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -15,7 +14,6 @@ import (
 	importer "github.com/ipfs/go-ipfs/importer"
 	chunk "github.com/ipfs/go-ipfs/importer/chunk"
 	merkledag "github.com/ipfs/go-ipfs/merkledag"
-	"github.com/ipfs/go-ipfs/pin"
 	"github.com/ipfs/go-ipfs/thirdparty/eventlog"
 	unixfs "github.com/ipfs/go-ipfs/unixfs"
 )
@@ -29,7 +27,7 @@ func Add(n *core.IpfsNode, r io.Reader) (string, error) {
 	dagNode, err := importer.BuildDagFromReader(
 		r,
 		n.DAG,
-		n.Pinning.GetManual(), // Fix this interface
+		n.Pinning,
 		chunk.DefaultSplitter,
 	)
 	if err != nil {
@@ -87,12 +85,7 @@ func AddWrapped(n *core.IpfsNode, r io.Reader, filename string) (string, *merkle
 }
 
 func add(n *core.IpfsNode, reader io.Reader) (*merkledag.Node, error) {
-	mp, ok := n.Pinning.(pin.ManualPinner)
-	if !ok {
-		return nil, errors.New("invalid pinner type! expected manual pinner")
-	}
-
-	node, err := importer.BuildDagFromReader(reader, n.DAG, mp, chunk.DefaultSplitter)
+	node, err := importer.BuildDagFromReader(reader, n.DAG, n.Pinning, chunk.DefaultSplitter)
 	if err != nil {
 		return nil, err
 	}

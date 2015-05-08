@@ -9,7 +9,7 @@ import (
 // efficiently create unixfs dag trees
 type DagBuilderHelper struct {
 	dserv    dag.DAGService
-	mp       pin.ManualPinner
+	mp       pin.Pinner
 	in       <-chan []byte
 	nextData []byte // the next item to return.
 	maxlinks int
@@ -23,7 +23,7 @@ type DagBuilderParams struct {
 	Dagserv dag.DAGService
 
 	// Pinner to use for pinning files (optionally nil)
-	Pinner pin.ManualPinner
+	Pinner pin.Pinner
 }
 
 // Generate a new DagBuilderHelper from the given params, using 'in' as a

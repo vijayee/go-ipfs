@@ -20,7 +20,7 @@ var log = util.Logger("importer")
 
 // Builds a DAG from the given file, writing created blocks to disk as they are
 // created
-func BuildDagFromFile(fpath string, ds dag.DAGService, mp pin.ManualPinner) (*dag.Node, error) {
+func BuildDagFromFile(fpath string, ds dag.DAGService, mp pin.Pinner) (*dag.Node, error) {
 	stat, err := os.Stat(fpath)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func BuildDagFromFile(fpath string, ds dag.DAGService, mp pin.ManualPinner) (*da
 	return BuildDagFromReader(f, ds, mp, chunk.DefaultSplitter)
 }
 
-func BuildDagFromReader(r io.Reader, ds dag.DAGService, mp pin.ManualPinner, spl chunk.BlockSplitter) (*dag.Node, error) {
+func BuildDagFromReader(r io.Reader, ds dag.DAGService, mp pin.Pinner, spl chunk.BlockSplitter) (*dag.Node, error) {
 	// Start the splitter
 	blkch := spl.Split(r)
 
@@ -52,7 +52,7 @@ func BuildDagFromReader(r io.Reader, ds dag.DAGService, mp pin.ManualPinner, spl
 	return bal.BalancedLayout(dbp.New(blkch))
 }
 
-func BuildTrickleDagFromReader(r io.Reader, ds dag.DAGService, mp pin.ManualPinner, spl chunk.BlockSplitter) (*dag.Node, error) {
+func BuildTrickleDagFromReader(r io.Reader, ds dag.DAGService, mp pin.Pinner, spl chunk.BlockSplitter) (*dag.Node, error) {
 	// Start the splitter
 	blkch := spl.Split(r)
 

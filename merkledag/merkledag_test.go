@@ -25,7 +25,7 @@ import (
 
 type dagservAndPinner struct {
 	ds DAGService
-	mp pin.ManualPinner
+	mp pin.Pinner
 }
 
 func getDagservAndPinner(t *testing.T) dagservAndPinner {
@@ -36,7 +36,7 @@ func getDagservAndPinner(t *testing.T) dagservAndPinner {
 		t.Fatal(err)
 	}
 	dserv := NewDAGService(blockserv)
-	mpin := pin.NewPinner(db, dserv).GetManual()
+	mpin := pin.NewPinner(db, dserv)
 	return dagservAndPinner{
 		ds: dserv,
 		mp: mpin,
