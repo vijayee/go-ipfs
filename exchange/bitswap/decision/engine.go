@@ -185,7 +185,7 @@ func (e *Engine) MessageReceived(p peer.ID, m bsmsg.BitSwapMessage) error {
 	defer e.lock.Unlock()
 
 	if len(m.Wantlist()) == 0 && len(m.Blocks()) == 0 {
-		log.Debug("received empty message from", p)
+		log.Debugf("received empty message from %s", p)
 	}
 
 	newWorkExists := false
@@ -202,11 +202,11 @@ func (e *Engine) MessageReceived(p peer.ID, m bsmsg.BitSwapMessage) error {
 
 	for _, entry := range m.Wantlist() {
 		if entry.Cancel {
-			log.Debug("cancel", entry.Key)
+			log.Debugf("cancel %s", entry.Key)
 			l.CancelWant(entry.Key)
 			e.peerRequestQueue.Remove(entry.Key, p)
 		} else {
-			log.Debug("wants", entry.Key, entry.Priority)
+			log.Debugf("wants %s", entry.Key, entry.Priority)
 			l.Wants(entry.Key, entry.Priority)
 			if exists, err := e.bs.Has(entry.Key); err == nil && exists {
 				e.peerRequestQueue.Push(entry.Entry, p)

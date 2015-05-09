@@ -29,6 +29,11 @@ type BitSwapMessage interface {
 
 	Cancel(key u.Key)
 
+	Empty() bool
+
+	// ClearBlocks removes all blocks from this message
+	ClearBlocks()
+
 	// Sets whether or not the contained wantlist represents the entire wantlist
 	// true = full wantlist
 	// false = wantlist 'patch'
@@ -92,6 +97,10 @@ func (m *impl) Full() bool {
 	return m.full
 }
 
+func (m *impl) Empty() bool {
+	return len(m.blocks) == 0 && len(m.wantlist) == 0
+}
+
 func (m *impl) Wantlist() []Entry {
 	var out []Entry
 	for _, e := range m.wantlist {
@@ -108,7 +117,12 @@ func (m *impl) Blocks() []*blocks.Block {
 	return bs
 }
 
+func (m *impl) ClearBlocks() {
+	m.blocks = make(map[u.Key]*blocks.Block)
+}
+
 func (m *impl) Cancel(k u.Key) {
+	delete(m.wantlist, k)
 	m.addEntry(k, 0, true)
 }
 
