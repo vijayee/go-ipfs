@@ -6,23 +6,23 @@ import (
 )
 
 type indirectPin struct {
-	refCounts map[util.Key]int
+	refCounts map[util.Key]uint64
 }
 
 func newIndirectPin() *indirectPin {
 	return &indirectPin{
-		refCounts: make(map[util.Key]int),
+		refCounts: make(map[util.Key]uint64),
 	}
 }
 
 func loadIndirPin(d ds.Datastore, k ds.Key) (*indirectPin, error) {
-	var rcStore map[string]int
+	var rcStore map[string]uint64
 	err := loadSet(d, k, &rcStore)
 	if err != nil {
 		return nil, err
 	}
 
-	refcnt := make(map[util.Key]int)
+	refcnt := make(map[util.Key]uint64)
 	var keys []util.Key
 	for encK, v := range rcStore {
 		if v > 0 {
@@ -38,7 +38,7 @@ func loadIndirPin(d ds.Datastore, k ds.Key) (*indirectPin, error) {
 
 func storeIndirPin(d ds.Datastore, k ds.Key, p *indirectPin) error {
 
-	rcStore := map[string]int{}
+	rcStore := map[string]uint64{}
 	for k, v := range p.refCounts {
 		rcStore[util.B58KeyEncode(k)] = v
 	}
@@ -61,6 +61,6 @@ func (i *indirectPin) HasKey(k util.Key) bool {
 	return found
 }
 
-func (i *indirectPin) GetRefs() map[util.Key]int {
+func (i *indirectPin) GetRefs() map[util.Key]uint64 {
 	return i.refCounts
 }
