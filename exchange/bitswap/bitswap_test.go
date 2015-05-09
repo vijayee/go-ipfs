@@ -41,14 +41,15 @@ func TestGetBlockFromPeerAfterPeerAnnounces(t *testing.T) {
 	g := NewTestSessionGenerator(net)
 	defer g.Close()
 
-	hasBlock := g.Next()
+	peers := g.Instances(2)
+	hasBlock := peers[0]
 	defer hasBlock.Exchange.Close()
 
 	if err := hasBlock.Exchange.HasBlock(context.Background(), block); err != nil {
 		t.Fatal(err)
 	}
 
-	wantsBlock := g.Next()
+	wantsBlock := peers[1]
 	defer wantsBlock.Exchange.Close()
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second)
@@ -164,8 +165,9 @@ func TestSendToWantingPeer(t *testing.T) {
 	prev := rebroadcastDelay.Set(time.Second / 2)
 	defer func() { rebroadcastDelay.Set(prev) }()
 
-	peerA := sg.Next()
-	peerB := sg.Next()
+	peers := sg.Instances(2)
+	peerA := peers[0]
+	peerB := peers[1]
 
 	t.Logf("Session %v\n", peerA.Peer)
 	t.Logf("Session %v\n", peerB.Peer)

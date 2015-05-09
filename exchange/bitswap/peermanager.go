@@ -27,10 +27,10 @@ type PeerManager struct {
 
 func NewPeerManager(network bsnet.BitSwapNetwork) *PeerManager {
 	return &PeerManager{
-		incoming:   make(chan *msgPair),
-		connect:    make(chan peer.ID),
-		disconnect: make(chan peer.ID),
-		cancels:    make(chan cancellation),
+		incoming:   make(chan *msgPair, 10),
+		connect:    make(chan peer.ID, 10),
+		disconnect: make(chan peer.ID, 10),
+		cancels:    make(chan cancellation, 10),
 		peers:      make(map[peer.ID]*msgQueue),
 		network:    network,
 	}

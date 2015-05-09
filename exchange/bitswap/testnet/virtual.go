@@ -118,9 +118,6 @@ func (nc *networkClient) Provide(ctx context.Context, k util.Key) error {
 
 func (nc *networkClient) SetDelegate(r bsnet.Receiver) {
 	nc.Receiver = r
-	for p, _ := range nc.network.clients {
-		r.PeerConnected(p)
-	}
 }
 
 func (nc *networkClient) ConnectTo(_ context.Context, p peer.ID) error {
