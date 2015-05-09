@@ -2,18 +2,15 @@ package pin
 
 import (
 	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	"github.com/ipfs/go-ipfs/blocks/set"
 	"github.com/ipfs/go-ipfs/util"
 )
 
 type indirectPin struct {
-	blockset  set.BlockSet
 	refCounts map[util.Key]int
 }
 
 func newIndirectPin() *indirectPin {
 	return &indirectPin{
-		blockset:  set.NewSimpleBlockSet(),
 		refCounts: make(map[util.Key]int),
 	}
 }
@@ -36,7 +33,7 @@ func loadIndirPin(d ds.Datastore, k ds.Key) (*indirectPin, error) {
 	}
 	// log.Debugf("indirPin keys: %#v", keys)
 
-	return &indirectPin{blockset: set.SimpleSetFromKeys(keys), refCounts: refcnt}, nil
+	return &indirectPin{refCounts: refcnt}, nil
 }
 
 func storeIndirPin(d ds.Datastore, k ds.Key, p *indirectPin) error {
@@ -49,24 +46,19 @@ func storeIndirPin(d ds.Datastore, k ds.Key, p *indirectPin) error {
 }
 
 func (i *indirectPin) Increment(k util.Key) {
-	c := i.refCounts[k]
-	i.refCounts[k] = c + 1
-	if c <= 0 {
-		i.blockset.AddBlock(k)
-	}
+	i.refCounts[k]++
 }
 
 func (i *indirectPin) Decrement(k util.Key) {
-	c := i.refCounts[k] - 1
-	i.refCounts[k] = c
-	if c <= 0 {
-		i.blockset.RemoveBlock(k)
+	i.refCounts[k]--
+	if i.refCounts[k] == 0 {
 		delete(i.refCounts, k)
 	}
 }
 
 func (i *indirectPin) HasKey(k util.Key) bool {
-	return i.blockset.HasKey(k)
+	_, found := i.refCounts[k]
+	return found
 }
 
 func (i *indirectPin) GetRefs() map[util.Key]int {
