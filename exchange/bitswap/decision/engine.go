@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
 	bstore "github.com/ipfs/go-ipfs/blocks/blockstore"
 	bsmsg "github.com/ipfs/go-ipfs/exchange/bitswap/message"
 	wl "github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
@@ -53,8 +54,9 @@ const (
 type Envelope struct {
 	// Peer is the intended recipient
 	Peer peer.ID
-	// Message is the payload
-	Message bsmsg.BitSwapMessage
+
+	// Block is the payload
+	Block *blocks.Block
 
 	// A callback to notify the decision queue that the task is complete
 	Sent func()
@@ -151,12 +153,10 @@ func (e *Engine) nextEnvelope(ctx context.Context) (*Envelope, error) {
 			continue
 		}
 
-		m := bsmsg.New() // TODO: maybe add keys from our wantlist?
-		m.AddBlock(block)
 		return &Envelope{
-			Peer:    nextTask.Target,
-			Message: m,
-			Sent:    nextTask.Done,
+			Peer:  nextTask.Target,
+			Block: block,
+			Sent:  nextTask.Done,
 		}, nil
 	}
 }

@@ -340,12 +340,6 @@ func (bs *Bitswap) ReceiveMessage(ctx context.Context, p peer.ID, incoming bsmsg
 	// TODO: this is bad, and could be easily abused.
 	// Should only track *useful* messages in ledger
 
-	for _, e := range incoming.Wantlist() {
-		if e.Cancel {
-			bs.pm.CancelBlock(p, e.Key)
-		}
-	}
-
 	var keys []u.Key
 	for _, block := range incoming.Blocks() {
 		bs.blocksRecvd++
