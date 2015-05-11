@@ -22,3 +22,11 @@ test_sort_cmp() {
 	sort "$2" >"$2_sorted" &&
 	test_cmp "$1_sorted" "$2_sorted"
 }
+
+# Similar to test_sort_cmp, but file A must have all lines of B, can have extra
+test_includes_lines() {
+	sort "$1" >"$1_sorted" &&
+	sort "$2" >"$2_sorted" &&
+	comm -1 -3 "$1_sorted" "$2_sorted" >"$1_missing" &&
+	[ ! -s "$1_missing" ] || test_fsh comm -1 -3 "$1_sorted" "$2_sorted"
+}
