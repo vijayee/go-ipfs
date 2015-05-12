@@ -75,7 +75,7 @@ func (pm *PeerManager) startPeerHandler(p peer.ID) {
 
 	mq := new(msgQueue)
 	mq.done = make(chan struct{})
-	mq.work = make(chan struct{})
+	mq.work = make(chan struct{}, 1)
 	mq.p = p
 
 	pm.peers[p] = mq
@@ -112,7 +112,7 @@ func (pm *PeerManager) runQueue(mq *msgQueue) {
 			mq.wlmsg = nil
 			mq.lk.Unlock()
 
-			if !wlm.Empty() {
+			if wlm != nil && !wlm.Empty() {
 				// send wantlist updates
 				err = pm.network.SendMessage(context.TODO(), mq.p, wlm)
 				if err != nil {
